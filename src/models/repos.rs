@@ -1,4 +1,4 @@
-use super::*;
+use super::{teams::Team, *};
 use crate::error;
 use crate::error::SerdeSnafu;
 use hyper::{body, Response};
@@ -369,4 +369,80 @@ pub struct MergeCommit {
     pub node_id: String,
     pub html_url: String,
     pub comments_url: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct ListEnvironments {
+    pub total_count: u64,
+    pub environments: Vec<Environment>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct Environment {
+    pub id: EnvironmentId,
+    pub node_id: String,
+    pub name: String,
+    pub url: Url,
+    pub html_url: Url,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    pub can_admins_bypass: Option<bool>,
+    pub protection_rules: Vec<ProtectionRule>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+#[serde(untagged)]
+pub enum ProtectionRule {
+    WaitTimer(WaitTimer),
+    RequiredReviewers(RequiredReviewers),
+    BranchPolicy(BranchPolicy),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct WaitTimer {
+    pub id: ProtectionRuleId,
+    pub node_id: String,
+    pub r#type: String,
+    pub wait_timer: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct RequiredReviewers {
+    pub id: ProtectionRuleId,
+    pub node_id: String,
+    pub r#type: String,
+    pub reviewers: Vec<Reviewer>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct BranchPolicy {
+    pub id: ProtectionRuleId,
+    pub node_id: String,
+    pub r#type: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+#[serde(tag = "type")]
+pub enum Reviewer {
+    User(AuthorReviewer),
+    Team(TeamReviewer),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct AuthorReviewer {
+    pub reviewer: Author,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct TeamReviewer {
+    pub reviewer: Team,
 }
